@@ -38,6 +38,60 @@
           });
         }
       });
+
+      // Komponen untuk menampilkan pesan kesalahan atau pemuatan.
+      AFRAME.registerComponent('message-display', {
+        schema: {
+          message: {type: 'string', default: ''}
+        },
+        init: function () {
+          this.messageBox = document.createElement('div');
+          this.messageBox.classList.add('message-box');
+          document.body.appendChild(this.messageBox);
+          this.updateMessage(this.data.message);
+        },
+        update: function () {
+          this.updateMessage(this.data.message);
+        },
+        updateMessage: function (msg) {
+          this.messageBox.textContent = msg;
+          this.messageBox.style.display = msg ? 'block' : 'none';
+        }
+      });
+
+      // Fungsi untuk menampilkan pesan di kotak pesan.
+      function showMessage(msg) {
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          scene.setAttribute('message-display', 'message', msg);
+        }
+      }
+
+      // Fungsi untuk menyembunyikan pesan.
+      function hideMessage() {
+        showMessage('');
+      }
+
+      // Event listener untuk saat scene A-Frame dimuat.
+      window.onload = function() {
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          // Tampilkan pesan pemuatan saat scene mulai dimuat.
+          showMessage('Memuat model...');
+
+          // Sembunyikan pesan pemuatan setelah semua aset dimuat.
+          scene.addEventListener('loaded', () => {
+            hideMessage();
+            console.log('Scene dan aset dimuat.');
+          });
+
+          // Tangani kesalahan pemuatan aset.
+          scene.addEventListener('asset-load-error', (evt) => {
+            showMessage(`Kesalahan memuat aset: ${evt.detail.src}`);
+            console.error(`Kesalahan memuat aset: ${evt.detail.src}`, evt);
+          });
+        }
+      };
     </script>
     <style>
       /* Gaya dasar untuk body dan instruksi */
@@ -60,6 +114,20 @@
         z-index: 100; /* Pastikan berada di atas scene AR */
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bayangan halus */
       }
+      .message-box {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(255, 0, 0, 0.7); /* Latar belakang merah semi-transparan untuk kesalahan */
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 18px;
+        text-align: center;
+        z-index: 101; /* Di atas instruksi */
+        display: none; /* Sembunyikan secara default */
+      }
     </style>
   </head>
   <body style="margin: 0; overflow: hidden">
@@ -67,10 +135,10 @@
       Arahkan kamera Anda ke penanda AR 'pattern-solar' untuk melihat tata surya!
     </div>
 
-    <a-scene embedded arjs vr-mode-ui="enabled: false">
+    <a-scene embedded arjs vr-mode-ui="enabled: false" message-display>
       <a-assets>
-        <a-asset-item id="earthModel" src="./assets/3d/earth/scene.gltf"></a-asset-item>
-        <a-asset-item id="solarModel" src="./assets/3d/solar/scene.gltf"></a-asset-item>
+        <a-asset-item id="earthModel" src="https://cdn.glitch.com/0685718a-9d74-4a14-a915-182379587d60%2Fearth.gltf?v=1605553198895"></a-asset-item>
+        <a-asset-item id="solarModel" src="https://cdn.glitch.com/0685718a-9d74-4a14-a915-182379587d60%2Fsun.gltf?v=1605553198895"></a-asset-item>
         <audio id="universeSound" src="assets/audio/universe.mp3" preload="auto"></audio>
       </a-assets>
 
