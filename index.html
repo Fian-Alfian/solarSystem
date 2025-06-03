@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Solar System AR Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <script>
+      // Komponen A-Frame untuk menangani pemutaran suara berdasarkan visibilitas penanda AR.
+      AFRAME.registerComponent('soundhandler', {
+        init: function () {
+          // Dapatkan entitas suara menggunakan ID-nya.
+          this.soundEl = document.querySelector('#universeAudio');
+          // Elemen penanda itu sendiri adalah 'el' dari komponen ini.
+          this.marker = this.el;
+          this.isPlaying = false; // Bendera untuk melacak apakah suara sedang diputar
+
+          // Tambahkan pendengar acara untuk saat penanda AR ditemukan.
+          this.el.addEventListener('markerFound', () => {
+            // Periksa apakah elemen suara dan komponennya ada, dan jika suara belum diputar.
+            if (this.soundEl && this.soundEl.components.sound && !this.isPlaying) {
+              this.soundEl.components.sound.playSound(); // Putar suara.
+              this.isPlaying = true; // Atur bendera ke true.
+              console.log('Penanda ditemukan, memutar suara.');
+            }
+          });
+
+          // Tambahkan pendengar acara untuk saat penanda AR hilang.
+          this.el.addEventListener('markerLost', () => {
+            // Periksa apakah elemen suara dan komponennya ada, dan jika suara sedang diputar.
+            if (this.soundEl && this.soundEl.components.sound && this.isPlaying) {
+              this.soundEl.components.sound.pauseSound(); // Jeda suara saat penanda hilang.
+              this.isPlaying = false; // Atur bendera ke false.
+              console.log('Penanda hilang, menjeda suara.');
+            }
+          });
+        }
+      });
+    </script>
+    <style>
+      /* Gaya dasar untuk body dan instruksi */
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Inter', sans-serif; /* Menggunakan font Inter */
+      }
+      .instructions {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.6); /* Latar belakang gelap semi-transparan */
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px; /* Sudut membulat */
+        font-size: 16px;
+        text-align: center;
+        z-index: 100; /* Pastikan berada di atas scene AR */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bayangan halus */
+      }
+    </style>
+  </head>
+  <body style="margin: 0; overflow: hidden">
+    <div class="instructions">
+      Arahkan kamera Anda ke penanda AR 'pattern-solar' untuk melihat tata surya!
+    </div>
+
+    <a-scene embedded arjs vr-mode-ui="enabled: false">
+      <a-assets>
+        <a-asset-item id="earthModel" src="./assets/3d/earth/scene.gltf"></a-asset-item>
+        <a-asset-item id="solarModel" src="./assets/3d/solar/scene.gltf"></a-asset-item>
+        <audio id="universeSound" src="assets/audio/universe.mp3" preload="auto"></audio>
+      </a-assets>
+
+      <a-marker preset="pattern-solar" soundhandler>
+        <a-entity
+          gltf-model="#solarModel"
+          scale="0.2 0.2 0.2" 
+          position="0 0 0" 
+          animation="property: rotation; to: 0 360 0; dur: 20000; loop: true; easing: linear;" 
+        ></a-entity>
+
+        <a-entity
+          position="0 0 0" 
+          animation="property: rotation; to: 0 360 0; dur: 36500; loop: true; easing: linear;" 
+        >
+          <a-entity
+            gltf-model="#earthModel"
+            scale="0.05 0.05 0.05" 
+            position="1 0 0" 
+            animation="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear;" 
+          ></a-entity>
+        </a-entity>
+      </a-marker>
+
+      <a-entity id="universeAudio" sound="src: #universeSound; autoplay: false;"></a-entity>
+
+      <a-camera></a-camera>
+    </a-scene>
+  </body>
+</html>
